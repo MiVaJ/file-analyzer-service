@@ -11,6 +11,11 @@ class Settings(BaseSettings):
     source_api_url: str
     source_api_candidate_id: str | None = None
 
+    source_api_files_path: str = "/api/files/names"
+
+    source_api_timeout: float = 5.0
+    source_api_max_retries: int = 3
+
     database_url: str
     async_database_url: str
 
