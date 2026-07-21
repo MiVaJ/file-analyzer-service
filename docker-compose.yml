@@ -3,6 +3,9 @@ services:
     build: .
     image: file-analyzer-service
     env_file: .env
+    volumes:
+      - .:/app
+      - /app/.venv
     depends_on:
       - db
       - redis
@@ -15,6 +18,9 @@ services:
     image: file-analyzer-service
     command: celery -A app.core.celery_app.celery_app worker --loglevel=INFO
     env_file: .env
+    volumes:
+      - .:/app
+      - /app/.venv
     depends_on:
       - db
       - redis
