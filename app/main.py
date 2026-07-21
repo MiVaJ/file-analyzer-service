@@ -1,9 +1,11 @@
 from fastapi import FastAPI
 
+from app.core.config import settings
+
 
 def create_app() -> FastAPI:
     app = FastAPI(
-        title="File Analyzer Service",
+        title=settings.app_name,
         description=(
             "Downloads a remote catalog of text files via a rate-limited API "
             "and computes digit-frequency statistics."

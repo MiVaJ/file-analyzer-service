@@ -4,17 +4,15 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    app_name: str = "File Analyzer Service"
     app_host: str
     app_port: int
 
     source_api_url: str
     source_api_candidate_id: str | None = None
 
-    postgres_host: str
-    postgres_port: int
-    postgres_db: str
-    postgres_user: str
-    postgres_password: str
+    database_url: str
+    async_database_url: str
 
     redis_url: str
     rabbitmq_url: str
