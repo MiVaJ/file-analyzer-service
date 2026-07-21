@@ -5,6 +5,7 @@ description = "Downloads a remote catalog of text files via a rate-limited API a
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
+    "alembic>=1.18.5",
     "celery>=5.6.3",
     "fastapi>=0.139.2",
     "httpx>=0.28.1",
