@@ -11,3 +11,13 @@ Source API: `http://91.199.149.128:18001` ([Swagger](http://91.199.149.128:18001
 ## Технологии
 
 FastAPI · SQLAlchemy · PostgreSQL · Redis · RabbitMQ · Celery · Nginx · Docker · uv
+
+## Локальная установка (WIP)
+
+```bash
+uv sync
+cp .env.example .env
+docker compose up --build
+```
+
+Приложение буде доступно по адресу `http://localhost:8080` (через nginx).
