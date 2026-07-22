@@ -32,15 +32,9 @@ class CatalogDownloader:
         if not file_names:
             return []
 
-        files = await self._client.download_files(
+        return await self._client.download_files(
             file_names,
         )
-
-        await self._client.mark_files_downloaded(
-            file_names,
-        )
-
-        return files
 
     async def _fill_queue(self) -> None:
         """Получает новые имена, если в очереди недостаточно файлов."""

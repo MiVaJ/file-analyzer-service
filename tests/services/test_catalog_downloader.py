@@ -50,13 +50,7 @@ async def test_downloader_downloads_batch_from_empty_queue() -> None:
         ],
     )
 
-    client.mark_files_downloaded.assert_awaited_once_with(
-        [
-            "file_1.txt",
-            "file_2.txt",
-            "file_3.txt",
-        ],
-    )
+    client.mark_files_downloaded.assert_not_awaited()
 
 
 @pytest.mark.asyncio
