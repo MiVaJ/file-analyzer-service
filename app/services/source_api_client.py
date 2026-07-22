@@ -70,22 +70,13 @@ class SourceApiClient:
                     f"{self.base_url}{self.files_path}",
                 )
 
-                if response.status_code == 403:
-                    raise SourceApiBlockedError(
-                        "Клиент временно заблокирован внешним API"
-                    )
+                should_retry = await self._handle_response_errors(
+                    response,
+                    attempt,
+                )
 
-                if response.status_code == 429:
-                    await self._handle_rate_limit(
-                        response,
-                        attempt,
-                    )
+                if should_retry:
                     continue
-
-                if response.status_code == 422:
-                    raise SourceApiValidationError(
-                        "Ошибка валидации запроса внешним API"
-                    )
 
                 response.raise_for_status()
 
@@ -117,19 +108,13 @@ class SourceApiClient:
                     json={"file_names": file_names},
                 )
 
-                if response.status_code == 403:
-                    raise SourceApiBlockedError(
-                        "Клиент временно заблокирован внешним API"
-                    )
+                should_retry = await self._handle_response_errors(
+                    response,
+                    attempt,
+                )
 
-                if response.status_code == 429:
-                    await self._handle_rate_limit(response, attempt)
+                if should_retry:
                     continue
-
-                if response.status_code == 422:
-                    raise SourceApiValidationError(
-                        "Ошибка валидации запроса внешним API"
-                    )
 
                 response.raise_for_status()
 
@@ -162,22 +147,13 @@ class SourceApiClient:
                     },
                 )
 
-                if response.status_code == 403:
-                    raise SourceApiBlockedError(
-                        "Клиент временно заблокирован внешним API"
-                    )
+                should_retry = await self._handle_response_errors(
+                    response,
+                    attempt,
+                )
 
-                if response.status_code == 429:
-                    await self._handle_rate_limit(
-                        response,
-                        attempt,
-                    )
+                if should_retry:
                     continue
-
-                if response.status_code == 422:
-                    raise SourceApiValidationError(
-                        "Ошибка валидации запроса внешним API"
-                    )
 
                 response.raise_for_status()
 
@@ -225,3 +201,25 @@ class SourceApiClient:
             delay = 2**attempt
 
         await asyncio.sleep(delay)
+
+    async def _handle_response_errors(
+        self,
+        response: httpx.Response,
+        attempt: int,
+    ) -> bool:
+        """Обрабатывает типовые ошибки ответов внешнего API."""
+
+        if response.status_code == 403:
+            raise SourceApiBlockedError("Клиент временно заблокирован внешним API")
+
+        if response.status_code == 429:
+            await self._handle_rate_limit(
+                response,
+                attempt,
+            )
+            return True
+
+        if response.status_code == 422:
+            raise SourceApiValidationError("Ошибка валидации запроса внешним API")
+
+        return False
