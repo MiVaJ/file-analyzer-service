@@ -32,6 +32,14 @@ class DownloadedFilePayload:
     content: str
 
 
+@dataclass
+class MarkDownloadedResult:
+    """Результат отметки файлов как скачанных."""
+
+    marked_now: int
+    already_marked: int
+
+
 class SourceApiClient:
     """Клиент для получения данных из File Catalog API."""
 
@@ -40,12 +48,14 @@ class SourceApiClient:
         base_url: str,
         files_path: str = "/api/files/names",
         download_path: str = "/api/files/download",
+        mark_downloaded_path: str = "/api/files/downloaded",
         timeout: float = 5.0,
         max_retries: int = 3,
     ) -> None:
         self.base_url = base_url.rstrip("/")
         self.files_path = files_path
         self.download_path = download_path
+        self.mark_downloaded_path = mark_downloaded_path
         self.timeout = timeout
         self.max_retries = max_retries
 
@@ -128,6 +138,59 @@ class SourceApiClient:
             raise SourceApiRateLimitError(
                 "Превышено максимальное количество попыток запросов"
             )
+
+    async def mark_files_downloaded(
+        self,
+        file_names: list[str],
+    ) -> MarkDownloadedResult:
+        """Отмечает файлы как скачанные во внешнем API."""
+
+        if not file_names:
+            return MarkDownloadedResult(
+                marked_now=0,
+                already_marked=0,
+            )
+
+        async with httpx.AsyncClient(
+            timeout=self.timeout,
+        ) as client:
+            for attempt in range(self.max_retries + 1):
+                response = await client.post(
+                    f"{self.base_url}{self.mark_downloaded_path}",
+                    json={
+                        "file_names": file_names,
+                    },
+                )
+
+                if response.status_code == 403:
+                    raise SourceApiBlockedError(
+                        "Клиент временно заблокирован внешним API"
+                    )
+
+                if response.status_code == 429:
+                    await self._handle_rate_limit(
+                        response,
+                        attempt,
+                    )
+                    continue
+
+                if response.status_code == 422:
+                    raise SourceApiValidationError(
+                        "Ошибка валидации запроса внешним API"
+                    )
+
+                response.raise_for_status()
+
+                data = response.json()
+
+                return MarkDownloadedResult(
+                    marked_now=data["marked_now"],
+                    already_marked=data["already_marked"],
+                )
+
+        raise SourceApiRateLimitError(
+            "Превышено максимальное количество попыток запросов"
+        )
 
     @staticmethod
     def _parse_zip_archive(content: bytes) -> list[DownloadedFilePayload]:
