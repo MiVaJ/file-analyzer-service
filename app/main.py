@@ -1,6 +1,20 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 
 from app.core.config import settings
+from app.core.redis import close_redis, init_redis
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await init_redis()
+
+    try:
+        yield
+
+    finally:
+        await close_redis()
 
 
 def create_app() -> FastAPI:
@@ -11,6 +25,7 @@ def create_app() -> FastAPI:
             "and computes digit-frequency statistics."
         ),
         version="0.1.0",
+        lifespan=lifespan,
     )
 
     @app.get("/health", tags=["Health"])
