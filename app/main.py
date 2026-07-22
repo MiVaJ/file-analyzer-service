@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from app.api.download import router as download_router
 from app.core.config import settings
 from app.core.redis import close_redis, init_redis
 
@@ -26,6 +27,10 @@ def create_app() -> FastAPI:
         ),
         version="0.1.0",
         lifespan=lifespan,
+    )
+
+    app.include_router(
+        download_router,
     )
 
     @app.get("/health", tags=["Health"])
