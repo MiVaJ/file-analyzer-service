@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from app.api.download import router as download_router
+from app.api.pages import router as pages_router
 from app.core.config import settings
 from app.core.redis import close_redis, init_redis
 
@@ -38,6 +39,10 @@ def create_app() -> FastAPI:
 
     app.include_router(
         download_router,
+    )
+
+    app.include_router(
+        pages_router,
     )
 
     @app.get("/health", tags=["Health"])

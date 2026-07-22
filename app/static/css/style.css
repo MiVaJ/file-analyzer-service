@@ -11,3 +11,12 @@ body {
   max-width: 900px;
   margin: 0 auto;
 }
+
+button {
+  padding: 10px 20px;
+  cursor: pointer;
+}
+
+.progress {
+  margin-top: 30px;
+}
