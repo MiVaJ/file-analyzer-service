@@ -1,0 +1,27 @@
+{
+  "name": "file-analyzer-service",
+  "version": "1.0.0",
+  "description": "Приложение загружает удаленный каталог текстовых файлов через API с ограниченной скоростью и вычисляет статистику по частоте встречаемости цифр в их содержимом с использованием веб-интерфейса.",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "format": "prettier --write .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MiVaJ/file-analyzer-service.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MiVaJ/file-analyzer-service/issues"
+  },
+  "homepage": "https://github.com/MiVaJ/file-analyzer-service#readme",
+  "devDependencies": {
+    "prettier": "^3.9.6"
+  }
+}
