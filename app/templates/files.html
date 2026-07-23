@@ -3,6 +3,16 @@ block content %}
 
 <h2>Скачанные файлы</h2>
 
+<div>
+  <label>
+    <input type="checkbox" id="select-page" />
+
+    Выбрать все на странице
+  </label>
+</div>
+
+<button type="button" id="select-all">Выбрать все файлы</button>
+
 <form id="stats-form">
   <div class="files-list">
     {% for file in files %}
@@ -17,6 +27,22 @@ block content %}
 
   <button type="submit">Произвести расчёты</button>
 </form>
+
+<div class="pagination">
+  {% if page > 1 %}
+
+  <a href="/files?page={{ page - 1 }}"> Назад </a>
+
+  {% endif %}
+
+  <span> Страница {{ page }} </span>
+
+  {% if files|length == limit %}
+
+  <a href="/files?page={{ page + 1 }}"> Вперёд </a>
+
+  {% endif %}
+</div>
 
 <h3>Результат</h3>
 
