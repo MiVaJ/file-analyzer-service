@@ -3,6 +3,9 @@ from datetime import datetime, timezone
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.exceptions.downloaded_file import (
+    DownloadedFilesNotFoundError,
+)
 from app.models.downloaded_file import DownloadedFile
 
 
@@ -67,3 +70,34 @@ class DownloadedFileService:
         )
 
         return files, total or 0
+
+    async def get_by_ids(
+        self,
+        file_ids: list[int],
+    ) -> list[DownloadedFile]:
+        """Возвращает скачанные файлы по идентификаторам."""
+
+        result = await self._session.execute(
+            select(
+                DownloadedFile,
+            ).where(
+                DownloadedFile.id.in_(
+                    file_ids,
+                ),
+            ),
+        )
+
+        files = list(
+            result.scalars().all(),
+        )
+
+        found_ids = {file.id for file in files}
+
+        missing_ids = set(file_ids) - found_ids
+
+        if missing_ids:
+            raise DownloadedFilesNotFoundError(
+                list(missing_ids),
+            )
+
+        return files
