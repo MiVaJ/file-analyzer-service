@@ -1,52 +1,66 @@
-{% extends "base.html" %} {% block title %} Скачанные файлы {% endblock %} {%
-block content %}
+{% extends "base.html" %} {% block title %} Файлы {% endblock %} {% block
+content %}
 
-<h2>Скачанные файлы</h2>
+<h2 class="page-title">Скачанные файлы</h2>
 
-<div>
-  <label>
-    <input type="checkbox" id="select-page" />
+{% set total_pages = ((total - 1) // limit + 1) if total > 0 and limit > 0 else
+1 %}
 
-    Выбрать все на странице
-  </label>
-</div>
-
-<button type="button" id="select-all">Выбрать все файлы</button>
-
-<form id="stats-form">
-  <div class="files-list">
-    {% for file in files %}
-    <label>
-      <input type="checkbox" name="file_ids" value="{{ file.id }}" />
-
-      {{ file.filename }} — {{ file.downloaded_at }}
-    </label>
-    <br />
-    {% endfor %}
+<div class="card">
+  <div class="actions">
+    <button id="select-all" type="button">Выбрать все файлы</button>
   </div>
 
-  <button type="submit">Произвести расчёты</button>
-</form>
+  <form id="stats-form">
+    <table class="files-table">
+      <thead>
+        <tr>
+          <th class="checkbox-column"></th>
+          <th>Имя файла</th>
+          <th>Дата скачивания</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for file in files %}
+        <tr>
+          <td>
+            <input type="checkbox" name="file_ids" value="{{ file.id }}" />
+          </td>
+
+          <td>{{ file.filename }}</td>
+
+          <td>{{ file.downloaded_at }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="actions">
+      <button id="stats-button" type="submit" disabled>
+        Рассчитать статистику
+      </button>
+    </div>
+  </form>
+</div>
+
+<div class="card">
+  <h3>Результат расчёта</h3>
+
+  <div id="stats-result" class="stats-result">Нет данных</div>
+</div>
 
 <div class="pagination">
   {% if page > 1 %}
-
-  <a href="/files?page={{ page - 1 }}"> Назад </a>
-
+  <a href="?page={{ page - 1 }}&limit={{ limit }}"> ← Назад </a>
   {% endif %}
 
-  <span> Страница {{ page }} </span>
+  <span> Страница {{ page }} из {{ total_pages }} </span>
 
-  {% if files|length == limit %}
-
-  <a href="/files?page={{ page + 1 }}"> Вперёд </a>
-
+  {% if page < total_pages %}
+  <a href="?page={{ page + 1 }}&limit={{ limit }}"> Вперёд → </a>
   {% endif %}
 </div>
-
-<h3>Результат</h3>
-
-<pre id="stats-result"></pre>
 
 <script src="{{ url_for('static', path='js/files.js') }}"></script>
 
