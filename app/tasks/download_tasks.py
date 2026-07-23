@@ -94,9 +94,9 @@ async def _download_catalog(
                     len(files),
                 )
 
-        await tracker.mark_finished(
-            download_id,
-        )
-
     finally:
+        if tracker:
+            await tracker.mark_finished(
+                download_id,
+            )
         await redis.close()

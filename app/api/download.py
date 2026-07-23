@@ -1,13 +1,16 @@
 from datetime import datetime
 from uuid import uuid4
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from redis.asyncio import Redis
 
+from app.core.redis import get_redis
 from app.schemas.download import (
     DownloadProgressResponse,
     StartDownloadResponse,
 )
 from app.schemas.download_progress import DownloadProgress
+from app.services.download_progress import DownloadProgressTracker
 from app.tasks.download_tasks import download_catalog
 
 router = APIRouter(
@@ -51,15 +54,27 @@ async def start_download() -> StartDownloadResponse:
 )
 async def get_download_progress(
     download_id: str,
+    redis: Redis = Depends(get_redis),
 ) -> DownloadProgressResponse:
     """Возвращает текущий прогресс загрузки."""
 
-    return DownloadProgressResponse(
-        progress=DownloadProgress(
-            status="running",
+    tracker = DownloadProgressTracker(
+        redis,
+    )
+
+    progress = await tracker.get(
+        download_id,
+    )
+
+    if progress is None:
+        progress = DownloadProgress(
+            status="not_found",
             received_names=0,
             downloaded=0,
             failed=0,
             started_at=datetime.now(),
-        ),
+        )
+
+    return DownloadProgressResponse(
+        progress=progress,
     )
