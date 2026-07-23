@@ -2,8 +2,9 @@
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>{% block title %} File Analyzer {% endblock %}</title>
+    <title>{% block title %}File Analyzer{% endblock %}</title>
 
     <link
       rel="stylesheet"
@@ -13,9 +14,27 @@
 
   <body>
     <header class="header">
-      <h1>File Analyzer</h1>
+      <div class="container">
+        <a href="/" class="logo"> File Analyzer </a>
+
+        <nav class="navigation">
+          <a
+            href="/"
+            class="{% if active_page == 'download' %}active{% endif %}"
+          >
+            Скачивание данных
+          </a>
+
+          <a
+            href="/files"
+            class="{% if active_page == 'files' %}active{% endif %}"
+          >
+            Скачанные файлы
+          </a>
+        </nav>
+      </div>
     </header>
 
-    <main class="container">{% block content %} {% endblock %}</main>
+    <main class="wrapper">{% block content %} {% endblock %}</main>
   </body>
 </html>
