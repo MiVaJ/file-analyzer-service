@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 
 from sqlalchemy import func, select
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.exceptions.downloaded_file import (
@@ -22,24 +23,24 @@ class DownloadedFileService:
         self,
         filename: str,
         path: str,
-    ) -> DownloadedFile:
-        """Сохраняет информацию о скачанном файле."""
+    ) -> None:
+        """Идемпотентно сохраняет информацию о скачанном файле."""
 
-        file = DownloadedFile(
-            filename=filename,
-            path=path,
-            downloaded_at=datetime.now(
-                timezone.utc,
-            ),
+        stmt = (
+            pg_insert(DownloadedFile)
+            .values(
+                filename=filename,
+                path=path,
+                downloaded_at=datetime.now(
+                    timezone.utc,
+                ),
+            )
+            .on_conflict_do_nothing(
+                index_elements=["filename"],
+            )
         )
 
-        self._session.add(
-            file,
-        )
-
-        await self._session.flush()
-
-        return file
+        await self._session.execute(stmt)
 
     async def get_files(
         self,
