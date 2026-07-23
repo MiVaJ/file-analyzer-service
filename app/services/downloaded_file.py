@@ -101,3 +101,20 @@ class DownloadedFileService:
             )
 
         return files
+
+    async def get_all_ids(
+        self,
+    ) -> list[int]:
+        """Возвращает идентификаторы всех скачанных файлов."""
+
+        result = await self._session.execute(
+            select(
+                DownloadedFile.id,
+            ).order_by(
+                DownloadedFile.downloaded_at.desc(),
+            ),
+        )
+
+        return list(
+            result.scalars().all(),
+        )

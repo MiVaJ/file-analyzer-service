@@ -57,3 +57,27 @@ async def get_files(
         limit=limit,
         total=total,
     )
+
+
+@router.get(
+    "/ids",
+    summary="Получить идентификаторы скачанных файлов",
+    description=(
+        "Возвращает идентификаторы всех скачанных файлов "
+        "для выбора всех файлов при расчёте статистики."
+    ),
+)
+async def get_file_ids(
+    session: AsyncSession = Depends(
+        get_db,
+    ),
+) -> dict[str, list[int]]:
+    """Возвращает идентификаторы всех файлов."""
+
+    service = DownloadedFileService(
+        session,
+    )
+
+    return {
+        "file_ids": await service.get_all_ids(),
+    }
