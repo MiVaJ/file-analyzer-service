@@ -1,0 +1,27 @@
+{% extends "base.html" %} {% block title %} Скачанные файлы {% endblock %} {%
+block content %}
+
+<h2>Скачанные файлы</h2>
+
+<form id="stats-form">
+  <div class="files-list">
+    {% for file in files %}
+    <label>
+      <input type="checkbox" name="file_ids" value="{{ file.id }}" />
+
+      {{ file.filename }} — {{ file.downloaded_at }}
+    </label>
+    <br />
+    {% endfor %}
+  </div>
+
+  <button type="submit">Произвести расчёты</button>
+</form>
+
+<h3>Результат</h3>
+
+<pre id="stats-result"></pre>
+
+<script src="{{ url_for('static', path='js/files.js') }}"></script>
+
+{% endblock %}
