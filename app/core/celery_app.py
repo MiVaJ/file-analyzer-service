@@ -6,6 +6,9 @@ celery_app = Celery(
     "file_analyzer",
     broker=settings.rabbitmq_url,
     backend=settings.redis_url,
+    include=[
+        "app.tasks.download_tasks",
+    ],
 )
 
 celery_app.conf.update(

@@ -8,6 +8,7 @@ from app.schemas.download import (
     StartDownloadResponse,
 )
 from app.schemas.download_progress import DownloadProgress
+from app.tasks.download_tasks import download_catalog
 
 router = APIRouter(
     prefix="/api/download",
@@ -28,6 +29,10 @@ async def start_download() -> StartDownloadResponse:
     """Запускает процесс скачивания каталога."""
 
     download_id = str(uuid4())
+
+    download_catalog.delay(
+        download_id,
+    )
 
     return StartDownloadResponse(
         download_id=download_id,
