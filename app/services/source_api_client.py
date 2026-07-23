@@ -1,11 +1,19 @@
 import asyncio
 import io
+import time
 import zipfile
 from dataclasses import dataclass
 
 import httpx
 
 MAX_DOWNLOAD_BATCH_SIZE = 3
+INITIAL_RETRY_DELAY_SECONDS = 3
+
+MIN_REQUEST_INTERVAL_SECONDS = 0.5
+MAX_REQUEST_INTERVAL_SECONDS = 10.0
+INTERVAL_INCREASE_FACTOR = 1.5
+INTERVAL_DECREASE_STEP_SECONDS = 0.05
+SUCCESSES_BEFORE_DECREASE = 5
 
 
 class SourceApiError(Exception):
@@ -56,6 +64,12 @@ class SourceApiClient:
         self._headers = {
             "X-Candidate-Id": candidate_id,
         }
+        self._cooldown_until = 0.0
+        self._last_request_time = 0.0
+
+        self._current_interval = MIN_REQUEST_INTERVAL_SECONDS
+        self._consecutive_successes = 0
+
         self.base_url = base_url.rstrip("/")
         self.files_path = files_path
         self.download_path = download_path
@@ -70,6 +84,9 @@ class SourceApiClient:
             timeout=self.timeout,
         ) as client:
             for attempt in range(self.max_retries + 1):
+                await self._wait_for_cooldown()
+                await self._wait_before_request()
+
                 response = await client.get(
                     f"{self.base_url}{self.files_path}",
                     headers=self._headers,
@@ -84,6 +101,7 @@ class SourceApiClient:
                     continue
 
                 response.raise_for_status()
+                self._register_success()
 
                 data = response.json()
 
@@ -108,6 +126,9 @@ class SourceApiClient:
 
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             for attempt in range(self.max_retries + 1):
+                await self._wait_for_cooldown()
+                await self._wait_before_request()
+
                 response = await client.post(
                     f"{self.base_url}{self.download_path}",
                     json={"file_names": file_names},
@@ -123,6 +144,7 @@ class SourceApiClient:
                     continue
 
                 response.raise_for_status()
+                self._register_success()
 
                 return self._parse_zip_archive(response.content)
 
@@ -146,6 +168,9 @@ class SourceApiClient:
             timeout=self.timeout,
         ) as client:
             for attempt in range(self.max_retries + 1):
+                await self._wait_for_cooldown()
+                await self._wait_before_request()
+
                 response = await client.post(
                     f"{self.base_url}{self.mark_downloaded_path}",
                     json={
@@ -163,6 +188,7 @@ class SourceApiClient:
                     continue
 
                 response.raise_for_status()
+                self._register_success()
 
                 data = response.json()
 
@@ -196,6 +222,7 @@ class SourceApiClient:
         attempt: int,
     ) -> None:
         """Обработка превышения лимита запросов API."""
+        self._increase_interval()
 
         if attempt >= self.max_retries:
             raise SourceApiRateLimitError("Превышен лимит запросов")
@@ -205,7 +232,9 @@ class SourceApiClient:
         if retry_after:
             delay = int(retry_after)
         else:
-            delay = 2**attempt
+            delay = INITIAL_RETRY_DELAY_SECONDS * (2**attempt)
+
+        self._cooldown_until = time.monotonic() + delay + 5
 
         await asyncio.sleep(delay)
 
@@ -230,3 +259,44 @@ class SourceApiClient:
             raise SourceApiValidationError("Ошибка валидации запроса внешним API")
 
         return False
+
+    async def _wait_for_cooldown(self):
+        """Ожидает паузу после ограничения API."""
+
+        delay = self._cooldown_until - time.monotonic()
+
+        if delay > 0:
+            await asyncio.sleep(delay)
+
+    async def _wait_before_request(self):
+        """Выдерживает текущую адаптивную паузу между запросами."""
+
+        now = time.monotonic()
+
+        delay = self._last_request_time + self._current_interval - now
+
+        if delay > 0:
+            await asyncio.sleep(delay)
+
+        self._last_request_time = time.monotonic()
+
+    def _increase_interval(self) -> None:
+        """Увеличивает паузу между запросами после 429."""
+
+        self._consecutive_successes = 0
+        self._current_interval = min(
+            self._current_interval * INTERVAL_INCREASE_FACTOR,
+            MAX_REQUEST_INTERVAL_SECONDS,
+        )
+
+    def _register_success(self) -> None:
+        """Учитывает успешный запрос. После серии успехов слегка ускоряется."""
+
+        self._consecutive_successes += 1
+
+        if self._consecutive_successes >= SUCCESSES_BEFORE_DECREASE:
+            self._consecutive_successes = 0
+            self._current_interval = max(
+                self._current_interval - INTERVAL_DECREASE_STEP_SECONDS,
+                MIN_REQUEST_INTERVAL_SECONDS,
+            )
