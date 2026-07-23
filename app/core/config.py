@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     app_port: int
 
     source_api_url: str
-    source_api_candidate_id: str | None = None
+    source_api_candidate_id: str
 
     source_api_files_path: str = "/api/files/names"
 

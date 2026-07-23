@@ -44,6 +44,7 @@ async def _download_catalog(
 
         client = SourceApiClient(
             base_url=settings.source_api_url,
+            candidate_id=settings.source_api_candidate_id,
         )
 
         downloader = CatalogDownloader(

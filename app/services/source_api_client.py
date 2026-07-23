@@ -46,12 +46,16 @@ class SourceApiClient:
     def __init__(
         self,
         base_url: str,
+        candidate_id: str,
         files_path: str = "/api/files/names",
         download_path: str = "/api/files/download",
         mark_downloaded_path: str = "/api/files/downloaded",
         timeout: float = 5.0,
         max_retries: int = 3,
     ) -> None:
+        self._headers = {
+            "X-Candidate-Id": candidate_id,
+        }
         self.base_url = base_url.rstrip("/")
         self.files_path = files_path
         self.download_path = download_path
@@ -68,6 +72,7 @@ class SourceApiClient:
             for attempt in range(self.max_retries + 1):
                 response = await client.get(
                     f"{self.base_url}{self.files_path}",
+                    headers=self._headers,
                 )
 
                 should_retry = await self._handle_response_errors(
@@ -106,6 +111,7 @@ class SourceApiClient:
                 response = await client.post(
                     f"{self.base_url}{self.download_path}",
                     json={"file_names": file_names},
+                    headers=self._headers,
                 )
 
                 should_retry = await self._handle_response_errors(
@@ -145,6 +151,7 @@ class SourceApiClient:
                     json={
                         "file_names": file_names,
                     },
+                    headers=self._headers,
                 )
 
                 should_retry = await self._handle_response_errors(
