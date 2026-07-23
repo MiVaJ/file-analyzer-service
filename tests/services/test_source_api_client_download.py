@@ -34,7 +34,10 @@ async def test_download_files_returns_parsed_content() -> None:
         return_value=httpx.Response(200, content=zip_bytes)
     )
 
-    client = SourceApiClient(base_url=BASE_URL)
+    client = SourceApiClient(
+        base_url=BASE_URL,
+        candidate_id="test-candidate",
+    )
     result = await client.download_files(["a.txt", "b.txt"])
 
     assert route.called
@@ -44,7 +47,10 @@ async def test_download_files_returns_parsed_content() -> None:
 @pytest.mark.asyncio
 async def test_download_files_empty_list_returns_empty_without_request() -> None:
     """Проверяет возврат пустого списка без обращения к API."""
-    client = SourceApiClient(base_url=BASE_URL)
+    client = SourceApiClient(
+        base_url=BASE_URL,
+        candidate_id="test-candidate",
+    )
 
     with respx.mock:
         result = await client.download_files([])
@@ -57,7 +63,10 @@ async def test_download_files_more_than_limit_raises_value_error_without_request
     None
 ):
     """Проверяет ошибку при превышении максимального размера батча."""
-    client = SourceApiClient(base_url=BASE_URL)
+    client = SourceApiClient(
+        base_url=BASE_URL,
+        candidate_id="test-candidate",
+    )
     filenames = [f"f{i}.txt" for i in range(MAX_DOWNLOAD_BATCH_SIZE + 1)]
 
     with respx.mock as mock_router:
@@ -72,7 +81,10 @@ async def test_download_files_more_than_limit_raises_value_error_without_request
 async def test_download_files_403_raises_blocked_error() -> None:
     """Проверяет обработку временной блокировки клиента."""
     respx.post(f"{BASE_URL}/api/files/download").mock(return_value=httpx.Response(403))
-    client = SourceApiClient(base_url=BASE_URL)
+    client = SourceApiClient(
+        base_url=BASE_URL,
+        candidate_id="test-candidate",
+    )
 
     with pytest.raises(SourceApiBlockedError):
         await client.download_files(["a.txt"])
@@ -83,7 +95,10 @@ async def test_download_files_403_raises_blocked_error() -> None:
 async def test_download_files_422_raises_validation_error() -> None:
     """Проверяет обработку ошибки валидации запроса."""
     respx.post(f"{BASE_URL}/api/files/download").mock(return_value=httpx.Response(422))
-    client = SourceApiClient(base_url=BASE_URL)
+    client = SourceApiClient(
+        base_url=BASE_URL,
+        candidate_id="test-candidate",
+    )
 
     with pytest.raises(SourceApiValidationError):
         await client.download_files(["a.txt"])
@@ -102,7 +117,9 @@ async def test_download_files_429_retries_then_succeeds(mocker) -> None:
     )
     mocker.patch("asyncio.sleep")
 
-    client = SourceApiClient(base_url=BASE_URL, max_retries=3)
+    client = SourceApiClient(
+        base_url=BASE_URL, candidate_id="test-candidate", max_retries=3
+    )
     result = await client.download_files(["a.txt"])
 
     assert route.call_count == 2
@@ -120,7 +137,9 @@ async def test_download_files_429_exceeds_retries_raises_rate_limit_error(
     )
     mocker.patch("asyncio.sleep")
 
-    client = SourceApiClient(base_url=BASE_URL, max_retries=2)
+    client = SourceApiClient(
+        base_url=BASE_URL, candidate_id="test-candidate", max_retries=2
+    )
 
     with pytest.raises(SourceApiRateLimitError):
         await client.download_files(["a.txt"])
@@ -131,7 +150,10 @@ async def test_download_files_429_exceeds_retries_raises_rate_limit_error(
 async def test_download_files_other_http_error_propagates() -> None:
     """Проверяет проброс необработанных HTTP-ошибок."""
     respx.post(f"{BASE_URL}/api/files/download").mock(return_value=httpx.Response(500))
-    client = SourceApiClient(base_url=BASE_URL)
+    client = SourceApiClient(
+        base_url=BASE_URL,
+        candidate_id="test-candidate",
+    )
 
     with pytest.raises(httpx.HTTPStatusError):
         await client.download_files(["a.txt"])

@@ -18,6 +18,7 @@ async def test_get_files_success(
     async def mock_get(
         self,
         url,
+        headers=None,
     ):
         return httpx.Response(
             status_code=200,
@@ -36,6 +37,7 @@ async def test_get_files_success(
 
     client = SourceApiClient(
         base_url="http://test",
+        candidate_id="test-candidate",
     )
 
     result = await client.get_file_names()
@@ -53,6 +55,7 @@ async def test_get_files_retries_after_rate_limit(
     async def mock_get(
         self,
         url,
+        headers=None,
     ):
         nonlocal calls
 
@@ -89,6 +92,7 @@ async def test_get_files_retries_after_rate_limit(
 
     client = SourceApiClient(
         base_url="http://test",
+        candidate_id="test-candidate",
         max_retries=1,
     )
 
@@ -107,6 +111,7 @@ async def test_get_files_raises_error_after_retry_limit(
     async def mock_get(
         self,
         url,
+        headers=None,
     ):
         return httpx.Response(
             status_code=429,
@@ -128,6 +133,7 @@ async def test_get_files_raises_error_after_retry_limit(
 
     client = SourceApiClient(
         base_url="http://test",
+        candidate_id="test-candidate",
         max_retries=0,
     )
 
@@ -144,6 +150,7 @@ async def test_get_file_names_raises_error_when_client_blocked(
     async def mock_get(
         _self,
         _url,
+        headers=None,
     ):
         return httpx.Response(
             status_code=403,
@@ -157,6 +164,7 @@ async def test_get_file_names_raises_error_when_client_blocked(
 
     client = SourceApiClient(
         base_url="http://test",
+        candidate_id="test-candidate",
     )
 
     with pytest.raises(SourceApiBlockedError):
@@ -172,6 +180,7 @@ async def test_get_file_names_raises_error_on_validation_failure(
     async def mock_get(
         _self,
         _url,
+        headers=None,
     ):
         return httpx.Response(
             status_code=422,
@@ -186,6 +195,7 @@ async def test_get_file_names_raises_error_on_validation_failure(
 
     client = SourceApiClient(
         base_url="http://test",
+        candidate_id="test-candidate",
     )
 
     with pytest.raises(SourceApiValidationError):

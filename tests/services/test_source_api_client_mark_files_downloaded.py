@@ -29,7 +29,10 @@ async def test_mark_files_downloaded_returns_result() -> None:
         ),
     )
 
-    client = SourceApiClient(base_url=BASE_URL)
+    client = SourceApiClient(
+        base_url=BASE_URL,
+        candidate_id="test-candidate",
+    )
 
     result = await client.mark_files_downloaded(
         [
@@ -47,7 +50,10 @@ async def test_mark_files_downloaded_returns_result() -> None:
 async def test_mark_files_downloaded_empty_list_returns_empty_result() -> None:
     """Проверяет возврат пустого результата без обращения к API."""
 
-    client = SourceApiClient(base_url=BASE_URL)
+    client = SourceApiClient(
+        base_url=BASE_URL,
+        candidate_id="test-candidate",
+    )
 
     with respx.mock:
         result = await client.mark_files_downloaded([])
@@ -67,7 +73,10 @@ async def test_mark_files_downloaded_403_raises_blocked_error() -> None:
         return_value=httpx.Response(403),
     )
 
-    client = SourceApiClient(base_url=BASE_URL)
+    client = SourceApiClient(
+        base_url=BASE_URL,
+        candidate_id="test-candidate",
+    )
 
     with pytest.raises(SourceApiBlockedError):
         await client.mark_files_downloaded(["a.txt"])
@@ -84,7 +93,10 @@ async def test_mark_files_downloaded_422_raises_validation_error() -> None:
         return_value=httpx.Response(422),
     )
 
-    client = SourceApiClient(base_url=BASE_URL)
+    client = SourceApiClient(
+        base_url=BASE_URL,
+        candidate_id="test-candidate",
+    )
 
     with pytest.raises(SourceApiValidationError):
         await client.mark_files_downloaded(["a.txt"])
@@ -121,6 +133,7 @@ async def test_mark_files_downloaded_429_retries_then_succeeds(
 
     client = SourceApiClient(
         base_url=BASE_URL,
+        candidate_id="test-candidate",
         max_retries=3,
     )
 
@@ -154,6 +167,7 @@ async def test_mark_files_downloaded_429_exceeds_retries_raises_rate_limit_error
 
     client = SourceApiClient(
         base_url=BASE_URL,
+        candidate_id="test-candidate",
         max_retries=2,
     )
 
@@ -172,7 +186,10 @@ async def test_mark_files_downloaded_other_http_error_propagates() -> None:
         return_value=httpx.Response(500),
     )
 
-    client = SourceApiClient(base_url=BASE_URL)
+    client = SourceApiClient(
+        base_url=BASE_URL,
+        candidate_id="test-candidate",
+    )
 
     with pytest.raises(httpx.HTTPStatusError):
         await client.mark_files_downloaded(["a.txt"])

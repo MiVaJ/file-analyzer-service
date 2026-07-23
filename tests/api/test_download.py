@@ -7,8 +7,14 @@ from app.main import app
 client = TestClient(app)
 
 
-def test_start_download_returns_download_id() -> None:
+def test_start_download_returns_download_id(
+    mocker,
+) -> None:
     """Проверяет запуск скачивания и создание идентификатора."""
+
+    mocker.patch(
+        "app.api.download.download_catalog.delay",
+    )
 
     response = client.post(
         "/api/download/start",
