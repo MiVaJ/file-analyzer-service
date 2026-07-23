@@ -1,25 +1,42 @@
-{% extends "base.html" %} {% block title %} Скачивание файлов {% endblock %}
-{%block content %}
+{% extends "base.html" %} {% block title %} Скачивание файлов {% endblock %} {%
+block content %}
 
-<h2>Скачивание данных</h2>
+<h2 class="page-title">Скачивание каталога</h2>
 
-<button id="start-download">Скачать данные</button>
-
-<div class="progress">
-  <p>
-    Статус:
-    <span id="status"> - </span>
+<div class="card">
+  <p class="info-text">
+    Нажмите кнопку, чтобы начать скачивание полного каталога файлов.
   </p>
 
-  <p>
-    Получено названий:
-    <span id="received"> 0 </span>
-  </p>
+  <button id="start-download">Скачать данные</button>
+</div>
 
-  <p>
-    Скачано:
-    <span id="downloaded"> 0 </span>
-  </p>
+<div class="card">
+  <div class="progress">
+    <div class="progress-item">
+      <span class="progress-label"> Статус </span>
+
+      <span id="status" class="progress-value"> - </span>
+    </div>
+
+    <div class="progress-item">
+      <span class="progress-label"> Время запуска (НСК) </span>
+
+      <span id="started-at" class="progress-value"> - </span>
+    </div>
+
+    <div class="progress-item">
+      <span class="progress-label"> Получено названий файлов </span>
+
+      <span id="received" class="progress-value"> 0 </span>
+    </div>
+
+    <div class="progress-item">
+      <span class="progress-label"> Скачано файлов </span>
+
+      <span id="downloaded" class="progress-value"> 0 </span>
+    </div>
+  </div>
 </div>
 
 <script src="{{ url_for('static', path='js/download.js') }}"></script>
